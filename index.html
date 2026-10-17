@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="FORM. LAB">
+  <meta name="theme-color" content="#FBFBFA">
+  <title>FORM. — Clinical Performance & Nutrition System</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: '#FBFBFA',
+            cream: '#F4F3F0',
+            chalk: '#ECEAE5',
+            ink: '#121314',
+            secondary: '#55585D',
+            muted: '#8A8D93',
+            line: '#E3E2DD',
+            lineSubtle: '#EDECE8',
+            clinical: {
+              forest: '#1B4232',
+              sage: '#2D5A46',
+              softSage: '#EBF2EE',
+              amber: '#92540D',
+              softAmber: '#FDF6ED',
+              red: '#962C2C',
+              softRed: '#FDF2F2'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"SF Pro Display"', 'Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            mono: ['"SF Mono"', 'Menlo', 'Monaco', 'Consolas', '"Courier New"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    body {
+      background-color: #FBFBFA;
+      color: #121314;
+      font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    }
+    .font-num {
+      font-feature-settings: "tnum" 1, "zero" 1;
+      font-variant-numeric: tabular-nums;
+    }
+    /* Hide number input spinners */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    /* Hide scrollbars */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* Touch Feedback */
+    .tap-press:active {
+      transform: scale(0.985);
+      transition: transform 0.08s ease-out;
+    }
+    
+    /* Safe Area Padding for iOS Devices */
+    .safe-top {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans select-none antialiased bg-paper text-ink pb-36 safe-bottom">
+
+  <!-- ============================================================== -->
+  <!-- 1. CLINICAL HEADER & BRAND BAR                                 -->
+  <!-- ============================================================== -->
+  <header class="sticky top-0 z-40 bg-paper/95 backdrop-blur-md border-b border-line safe-top">
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded border border-ink flex items-center justify-center font-bold text-xs font-mono tracking-tighter bg-ink text-paper">
+          FL
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink">FORM. CLINICAL OS</span>
+            <span class="text-[9px] uppercase font-mono font-medium px-1.5 py-0.5 rounded border border-line bg-cream text-secondary">REG. 3000K-150P</span>
+          </div>
+          <p id="topDateSubtext" class="text-[11px] text-muted font-num mt-0.5">Hydration & Electrolytes Monitored</p>
+        </div>
+      </div>
+
+      <!-- Action items: Export & Timer Setting -->
+      <div class="flex items-center gap-1.5">
+        <button onclick="openWeeklyReviewModal()" class="tap-press px-2.5 py-1.5 rounded border border-line hover:border-secondary bg-cream text-ink text-xs font-medium flex items-center gap-1 transition-colors">
+          <svg class="w-3.5 h-3.5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <span class="text-[11px] font-mono uppercase tracking-wide">Export AI</span>
+        </button>
+        <button onclick="toggleTimerSettingsModal()" class="tap-press px-2 py-1.5 rounded border border-line hover:border-secondary bg-cream text-ink text-xs font-mono flex items-center gap-1 transition-colors">
+          <span id="configuredRestDisplay" class="font-bold text-[11px]">90s</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- 2. APOTHECARY-STYLE WEEKLY DATE STRIP                          -->
+  <!-- ============================================================== -->
+  <section class="border-b border-line bg-paper">
+    <div class="max-w-xl mx-auto px-4 py-2.5">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <button onclick="navigateDateDays(-1)" class="w-6 h-6 rounded flex items-center justify-center border border-line text-secondary hover:text-ink active:bg-cream">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <span id="currentDateSelectedLabel" class="text-xs font-semibold tracking-tight text-ink">Mon, Oct 19, 2026</span>
+          <button onclick="navigateDateDays(1)" class="w-6 h-6 rounded flex items-center justify-center border border-line text-secondary hover:text-ink active:bg-cream">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="jumpToToday()" class="text-[10px] font-mono uppercase font-bold tracking-wider px-2 py-0.5 rounded border border-line text-secondary hover:text-ink hover:bg-cream">Today</button>
+          <input type="date" id="nativeDatePickerInput" onchange="onNativeDatePicked(this.value)" class="text-[11px] font-mono bg-cream text-secondary border border-line rounded px-1.5 py-0.5 focus:outline-none focus:border-ink">
+        </div>
+      </div>
+
+      <!-- Segmented Weekly Strip -->
+      <div id="weekDaysStrip" class="grid grid-cols-7 gap-1">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================== -->
+  <!-- 3. TAB CONTROLLER (MINIMAL SEGMENTED PILL)                     -->
+  <!-- ============================================================== -->
+  <nav class="max-w-xl mx-auto w-full px-4 pt-3.5">
+    <div class="grid grid-cols-4 p-0.5 bg-cream rounded border border-line">
+      <button id="navWorkoutBtn" onclick="switchDomainTab('workout')" class="py-1.5 text-xs font-semibold tracking-tight rounded transition-all text-paper bg-ink shadow-sm">
+        Protocol
+      </button>
+      <button id="navNutritionBtn" onclick="switchDomainTab('nutrition')" class="py-1.5 text-xs font-medium tracking-tight rounded transition-all text-secondary hover:text-ink">
+        Nutrition
+      </button>
+      <button id="navCardioBtn" onclick="switchDomainTab('cardio')" class="py-1.5 text-xs font-medium tracking-tight rounded transition-all text-secondary hover:text-ink">
+        Recovery
+      </button>
+      <button id="navHistoryBtn" onclick="switchDomainTab('history')" class="py-1.5 text-xs font-medium tracking-tight rounded transition-all text-secondary hover:text-ink">
+        History
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================================== -->
+  <!-- MAIN APPLICATION BODY                                          -->
+  <!-- ============================================================== -->
+  <main class="max-w-xl mx-auto w-full px-4 pt-3 flex-1 flex flex-col gap-3.5">
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TAB 1: WORKOUT & PROGRESSIVE OVERLOAD                        -->
+    <!-- ------------------------------------------------------------ -->
+    <div id="tabContentWorkout" class="flex flex-col gap-3">
+      
+      <!-- Routine Specification Banner -->
+      <div class="p-3.5 rounded border border-line bg-cream flex flex-col gap-1.5">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span id="dayBadgeLabel" class="text-[10px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-paper border border-line text-ink">
+              UPPER A
+            </span>
+            <h2 id="dayWorkoutTitle" class="text-xs font-bold uppercase tracking-tight text-ink">Pectoralis & Latissimus Focus</h2>
+          </div>
+          <button id="ghostCopyBtn" onclick="autoFillCurrentWorkoutFromPrevious()" class="tap-press text-[11px] font-mono font-medium text-secondary hover:text-ink underline flex items-center gap-1">
+            <span>Match Previous</span>
+          </button>
+        </div>
+        <p id="prevSessionRefText" class="text-[11px] text-muted font-mono leading-tight">Syncing previous performance baseline...</p>
+      </div>
+
+      <!-- Rest Day / Active Recovery Notice -->
+      <div id="nonLiftingBanner" class="hidden p-6 rounded border border-line bg-cream flex-col items-center text-center gap-2">
+        <div class="w-8 h-8 rounded-full border border-line flex items-center justify-center text-sm bg-paper text-ink" id="nonLiftingIcon">
+          Rx
+        </div>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-ink" id="nonLiftingTitle">Active Recovery Protocol</h3>
+        <p class="text-xs text-secondary max-w-sm font-sans" id="nonLiftingDesc">Neurological and joint decompression. No direct hypertrophic axial load scheduled for today.</p>
+        <button onclick="switchDomainTab('cardio')" class="mt-2 text-xs font-mono font-semibold text-clinical-forest underline">
+          Review Cardiovascular Log →
+        </button>
+      </div>
+
+      <!-- Exercises List (Clinical Prescription Cards) -->
+      <div id="exerciseCardsContainer" class="flex flex-col gap-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Bottom Save Action -->
+      <div id="saveWorkoutBtnWrapper" class="pt-2">
+        <button onclick="saveCurrentDateWorkout()" class="tap-press w-full py-3 rounded bg-ink text-paper text-xs font-bold font-mono uppercase tracking-wider shadow-sm hover:bg-black transition-colors flex items-center justify-center gap-2">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Record Workout & Lock Session
+        </button>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TAB 2: NUTRITION & EXACT GRAM COMPLIANCE                     -->
+    <!-- ------------------------------------------------------------ -->
+    <div id="tabContentNutrition" class="hidden flex-col gap-3.5">
+      
+      <!-- Diagnostic Target Overview Card -->
+      <div class="p-4 rounded border border-line bg-cream flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-lineSubtle pb-2.5">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold uppercase tracking-wider text-ink">Daily Formulation</span>
+              <span id="nutritionTimingPill" class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border border-line bg-paper text-secondary">06:00 AM Start</span>
+            </div>
+            <p class="text-[11px] text-muted font-mono mt-0.5">Prescribed: 3,000 kcal • 150g P • 430g C • 75g F</p>
+          </div>
+          <button onclick="toggleNutritionWeekendSchedule()" id="weekendToggleBtn" class="tap-press text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-1 rounded border border-line bg-paper text-ink hover:bg-chalk">
+            Shift +2h (Sat/Sun)
+          </button>
+        </div>
+
+        <!-- 4 Diagnostic Metric Meters -->
+        <div class="grid grid-cols-4 gap-2 text-left font-mono">
+          <div class="p-2 rounded bg-paper border border-lineSubtle">
+            <span class="text-[9px] uppercase tracking-wider text-muted block">Energy</span>
+            <div class="text-xs font-bold text-ink mt-0.5"><span id="calCurrentVal">0</span><span class="text-[9px] font-normal text-muted">/3k</span></div>
+            <div class="w-full bg-cream h-1 rounded-full mt-1.5 overflow-hidden">
+              <div id="calProgressBar" class="bg-ink h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="p-2 rounded bg-paper border border-lineSubtle">
+            <span class="text-[9px] uppercase tracking-wider text-clinical-forest block">Protein</span>
+            <div class="text-xs font-bold text-ink mt-0.5"><span id="proteinCurrentVal">0</span><span class="text-[9px] font-normal text-muted">/150g</span></div>
+            <div class="w-full bg-cream h-1 rounded-full mt-1.5 overflow-hidden">
+              <div id="proteinProgressBar" class="bg-clinical-forest h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="p-2 rounded bg-paper border border-lineSubtle">
+            <span class="text-[9px] uppercase tracking-wider text-secondary block">Carbs</span>
+            <div class="text-xs font-bold text-ink mt-0.5"><span id="carbsCurrentVal">0</span><span class="text-[9px] font-normal text-muted">/430g</span></div>
+            <div class="w-full bg-cream h-1 rounded-full mt-1.5 overflow-hidden">
+              <div id="carbsProgressBar" class="bg-secondary h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="p-2 rounded bg-paper border border-lineSubtle">
+            <span class="text-[9px] uppercase tracking-wider text-secondary block">Lipids</span>
+            <div class="text-xs font-bold text-ink mt-0.5"><span id="fatCurrentVal">0</span><span class="text-[9px] font-normal text-muted">/75g</span></div>
+            <div class="w-full bg-cream h-1 rounded-full mt-1.5 overflow-hidden">
+              <div id="fatProgressBar" class="bg-secondary h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] font-mono text-secondary pt-0.5">
+          <span>Batch Cooking: Sun/Wed Split</span>
+          <button onclick="checkAllDailyMeals()" class="underline hover:text-ink font-semibold">Verify All 5 Meals</button>
+        </div>
+      </div>
+
+      <!-- 5 Prescribed Meals -->
+      <div id="mealsListContainer" class="flex flex-col gap-2.5">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TAB 3: RECOVERY, CARDIO & SAUNA                             -->
+    <!-- ------------------------------------------------------------ -->
+    <div id="tabContentCardio" class="hidden flex-col gap-3">
+      
+      <!-- Cardio Guidelines Card -->
+      <div class="p-4 rounded border border-line bg-cream flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-mono uppercase text-muted tracking-wider block">Prescription</span>
+            <h3 class="text-xs font-bold uppercase tracking-tight text-ink" id="cardioRecTitle">Zone 2 Aerobic Flush</h3>
+          </div>
+          <span class="text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-line bg-paper text-secondary">
+            Polarized 80/20
+          </span>
+        </div>
+        <p class="text-xs text-clinical-forest font-semibold font-mono" id="cardioRecTarget">20–25 min easy pace (conversational)</p>
+        <p class="text-[11px] text-secondary font-sans leading-relaxed pt-1.5 border-t border-lineSubtle" id="cardioRecScience">
+          Mitochondrial respiration protocol. Avoid exceeding Zone 2 heart rate thresholds to prevent AMPK activation from antagonizing hypertrophic mTORC1 transcription.
+        </p>
+      </div>
+
+      <!-- Cardio Input Panel -->
+      <div class="p-4 rounded border border-line bg-paper flex flex-col gap-3 font-mono">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-muted">Cardiovascular Session Log</span>
+        
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[10px] uppercase text-muted block mb-1">Modality</label>
+            <select id="cardioTypeSelect" class="w-full bg-cream border border-line rounded px-2 py-1.5 text-xs font-sans text-ink focus:outline-none focus:border-ink">
+              <option value="Zone 2 Run">Zone 2 Run (Easy)</option>
+              <option value="Interval Run">Interval Run (4x3 min Hard)</option>
+              <option value="Active Swim">Recovery Swim (Technique/Easy)</option>
+              <option value="Endurance Swim">Endurance Swim (Zone 2)</option>
+              <option value="LISS Walk">LISS Walk / Stationary Cycle</option>
+              <option value="None">None (Rest Day)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] uppercase text-muted block mb-1">Duration (Min)</label>
+            <input type="number" id="cardioDurationInput" placeholder="25" class="w-full bg-cream border border-line rounded px-2 py-1.5 text-xs text-ink focus:outline-none focus:border-ink">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="text-[10px] uppercase text-muted block mb-1">Volume / Distance</label>
+            <input type="text" id="cardioDistanceInput" placeholder="2.5 mi or 800 yd" class="w-full bg-cream border border-line rounded px-2 py-1.5 text-xs font-sans text-ink focus:outline-none focus:border-ink">
+          </div>
+          <div>
+            <label class="text-[10px] uppercase text-muted block mb-1">Mean HR Zone</label>
+            <select id="cardioHrZoneSelect" class="w-full bg-cream border border-line rounded px-2 py-1.5 text-xs font-sans text-ink focus:outline-none focus:border-ink">
+              <option value="Zone 1 (Recovery <113 bpm)">Zone 1 (&lt;113 bpm)</option>
+              <option value="Zone 2 (Aerobic 114-135 bpm)" selected>Zone 2 (114-135 bpm)</option>
+              <option value="Zone 3 (Tempo 136-150 bpm)">Zone 3 (136-150 bpm)</option>
+              <option value="Zone 4 (Threshold 151-168 bpm)">Zone 4 (151-168 bpm)</option>
+              <option value="Zone 5 (VO2 Max >169 bpm)">Zone 5 (&gt;169 bpm)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-[10px] uppercase text-muted block mb-1">Physiological Notes (Form / RPE)</label>
+          <input type="text" id="cardioNotesInput" placeholder="Nasal breathing sustained, zero lower extremity discomfort" class="w-full bg-cream border border-line rounded px-2 py-1.5 text-xs font-sans text-ink focus:outline-none focus:border-ink">
+        </div>
+      </div>
+
+      <!-- 15-Minute Post-Workout Sauna Card -->
+      <div class="p-3.5 rounded border border-line bg-paper flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-ink">15-Min Post-Workout Sauna</span>
+            <span class="text-[9px] font-mono px-1 rounded border border-line bg-cream text-secondary">HSP-70</span>
+          </div>
+          <p class="text-[11px] text-muted font-sans mt-0.5">Induction of heat shock proteins and plasma volume expansion.</p>
+        </div>
+
+        <button id="saunaCompletedToggleBtn" onclick="toggleDailySauna()" class="tap-press w-9 h-9 rounded border border-line bg-cream flex items-center justify-center text-secondary transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        </button>
+      </div>
+
+      <button onclick="saveCardioAndSaunaData()" class="tap-press w-full py-2.5 rounded border border-ink text-ink font-mono text-xs uppercase font-bold tracking-wider hover:bg-cream transition-colors">
+        Log Cardiovascular Metrics
+      </button>
+    </div>
+
+    <!-- ------------------------------------------------------------ -->
+    <!-- TAB 4: CLINICAL HISTORICAL RECORD                           -->
+    <!-- ------------------------------------------------------------ -->
+    <div id="tabContentHistory" class="hidden flex-col gap-3">
+      <!-- High Level Quantitative Summary -->
+      <div class="grid grid-cols-3 gap-2 font-mono text-center">
+        <div class="p-3 rounded border border-line bg-cream">
+          <span class="text-[9px] uppercase tracking-wider text-muted block">Sessions</span>
+          <span id="metricTotalWorkouts" class="text-base font-bold text-ink mt-0.5 block">0</span>
+        </div>
+        <div class="p-3 rounded border border-line bg-cream">
+          <span class="text-[9px] uppercase tracking-wider text-muted block">Diet Adherence</span>
+          <span id="metricNutritionAdherence" class="text-base font-bold text-clinical-forest mt-0.5 block">0d</span>
+        </div>
+        <div class="p-3 rounded border border-line bg-cream">
+          <span class="text-[9px] uppercase tracking-wider text-muted block">Volume Load</span>
+          <span id="metricTotalVolume" class="text-base font-bold text-ink mt-0.5 block">0k</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-ink font-mono">Archive Logs</span>
+        <button onclick="openWeeklyReviewModal()" class="text-xs font-mono text-clinical-forest underline font-medium">
+          Generate Weekly Summary →
+        </button>
+      </div>
+
+      <div id="historyLogsList" class="flex flex-col gap-2">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- FLOATING MINIMAL REST TIMER BAR                                -->
+  <!-- ============================================================== -->
+  <div id="floatingTimerBar" class="fixed bottom-4 inset-x-4 max-w-xl mx-auto bg-ink text-paper border border-ink rounded p-3 shadow-xl z-50 transition-all duration-300 translate-y-36 opacity-0 pointer-events-none flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded border border-white/20 bg-white/5 flex items-center justify-center font-mono text-xs font-bold text-paper font-num">
+        <span id="timerTimeText">90s</span>
+      </div>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="text-xs font-bold uppercase tracking-wider text-paper">Rest Interval</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-clinical-forest"></span>
+        </div>
+        <p id="timerExerciseContext" class="text-[11px] text-white/60 font-sans truncate max-w-[180px]">Next set approaching</p>
+      </div>
+    </div>
+
+    <!-- Timer Controls -->
+    <div class="flex items-center gap-2 font-mono">
+      <button onclick="adjustRestTimer(30)" class="tap-press px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-xs text-paper">
+        +30s
+      </button>
+      <button onclick="dismissRestTimer()" class="tap-press px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-xs text-white/70">
+        Skip
+      </button>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: WEEKLY AI REVIEW EXPORT (DIRECT FOR GEMINI)             -->
+  <!-- ============================================================== -->
+  <div id="weeklyReviewModal" class="fixed inset-0 bg-ink/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-paper border border-line max-w-lg w-full rounded p-5 shadow-2xl flex flex-col gap-3 max-h-[90vh]">
+      <div class="flex items-center justify-between border-b border-line pb-2.5">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-ink font-mono">Weekly Clinical Evaluation</h3>
+          <p class="text-[11px] text-muted font-sans">Progressive overload & macro telemetry export for Gemini AI review</p>
+        </div>
+        <button onclick="closeWeeklyReviewModal()" class="w-6 h-6 rounded flex items-center justify-center text-muted hover:text-ink font-mono">✕</button>
+      </div>
+
+      <div class="flex items-center justify-between text-xs font-mono">
+        <span class="text-secondary">Evaluation Range:</span>
+        <select id="exportPeriodSelect" onchange="generateWeeklyReviewJSON()" class="bg-cream border border-line rounded px-2 py-1 text-xs text-ink font-mono focus:outline-none">
+          <option value="current_week">Current Week (Mon – Sun)</option>
+          <option value="last_7_days">Past 7 Consecutive Days</option>
+          <option value="all_history">Complete Longitudinal Dataset</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between text-[11px] font-mono text-muted">
+          <span>Prepared Prompt & Payload</span>
+          <span id="exportStatsSummary" class="text-secondary">7 days configured</span>
+        </div>
+        <textarea id="aiPromptOutputText" readonly class="w-full h-48 bg-cream border border-line rounded p-2.5 font-mono text-[10px] text-secondary leading-relaxed focus:outline-none select-all resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1 font-mono">
+        <button onclick="copyWeeklyPromptToClipboard()" class="tap-press py-2 rounded bg-ink text-paper text-xs font-bold uppercase tracking-wider hover:bg-black transition-colors flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+          Copy Prompt
+        </button>
+        <button onclick="downloadWeeklyJSONFile()" class="tap-press py-2 rounded border border-line bg-cream text-ink text-xs font-bold uppercase tracking-wider hover:bg-chalk transition-colors flex items-center justify-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Download .JSON
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: TIMER DURATION CONFIGURATION                           -->
+  <!-- ============================================================== -->
+  <div id="timerModal" class="fixed inset-0 bg-ink/30 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-paper border border-line max-w-xs w-full rounded p-4 shadow-xl flex flex-col gap-3 font-mono">
+      <div class="flex items-center justify-between border-b border-line pb-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-ink">Rest Duration</span>
+        <button onclick="toggleTimerSettingsModal()" class="text-muted hover:text-ink text-xs">✕</button>
+      </div>
+      <p class="text-[11px] text-secondary font-sans leading-tight">Countdown initializes upon checking off a completed set.</p>
+      
+      <div class="grid grid-cols-4 gap-1.5 pt-1">
+        <button onclick="setDefaultRest(60)" class="tap-press py-2 rounded border border-line bg-cream text-xs font-bold text-ink hover:bg-chalk">60s</button>
+        <button onclick="setDefaultRest(90)" class="tap-press py-2 rounded border border-line bg-cream text-xs font-bold text-ink hover:bg-chalk">90s</button>
+        <button onclick="setDefaultRest(120)" class="tap-press py-2 rounded border border-line bg-cream text-xs font-bold text-ink hover:bg-chalk">120s</button>
+        <button onclick="setDefaultRest(180)" class="tap-press py-2 rounded border border-line bg-cream text-xs font-bold text-ink hover:bg-chalk">180s</button>
+      </div>
+
+      <div class="flex items-center justify-between pt-2 border-t border-line text-xs font-sans">
+        <span class="text-secondary">Synthesizer Chimes</span>
+        <input type="checkbox" id="timerAudioCheckbox" checked class="w-4 h-4 accent-ink rounded">
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- APOTHECARY TOAST NOTIFICATION                                  -->
+  <!-- ============================================================== -->
+  <div id="toastNotification" class="fixed top-4 inset-x-4 max-w-xs mx-auto bg-ink text-paper px-3 py-2 rounded shadow-xl text-xs font-mono flex items-center justify-between pointer-events-none transition-all duration-300 -translate-y-20 opacity-0 z-50">
+    <span id="toastMessage">Verified</span>
+    <span class="text-clinical-forest font-bold text-[10px] uppercase">OK</span>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- CLIENT JAVASCRIPT APPLICATION ARCHITECTURE                     -->
+  <!-- ============================================================== -->
+  <script>
+    /* --------------------------------------------------------------
+       1. BLUEPRINTS & EVIDENCE-BASED SCHEDULE
+    -------------------------------------------------------------- */
+    const PROTOCOL_WEEK = {
+      1: {
+        routineKey: 'upper_a',
+        routineName: 'Upper A',
+        type: 'lifting',
+        focus: 'Chest + Back + Shoulders + Arms',
+        cardioTarget: '20–25 min EASY Run (Zone 2 Conversational)',
+        cardioDefaultType: 'Zone 2 Run',
+        cardioDefaultDuration: 22,
+        exercises: [
+          { id: 'u_a_1', name: 'Machine Chest Press', targetSets: 3, repRange: '6–8', category: 'Pectoralis' },
+          { id: 'u_a_2', name: 'Lat Pulldown / Assisted Pull-up', targetSets: 3, repRange: '8–10', category: 'Latissimus' },
+          { id: 'u_a_3', name: 'Incline Dumbbell or Machine Press', targetSets: 3, repRange: '8–12', category: 'Clavicular Pec' },
+          { id: 'u_a_4', name: 'Chest-Supported Row', targetSets: 3, repRange: '8–12', category: 'Rhomboids' },
+          { id: 'u_a_5', name: 'Cable Lateral Raise', targetSets: 3, repRange: '12–15', category: 'Lateral Delts' },
+          { id: 'u_a_6', name: 'Triceps Pushdown', targetSets: 2, repRange: '10–15', category: 'Triceps' },
+          { id: 'u_a_7', name: 'Dumbbell Curl', targetSets: 2, repRange: '10–15', category: 'Biceps' }
+        ]
+      },
+      2: {
+        routineKey: 'lower_a',
+        routineName: 'Lower A',
+        type: 'lifting',
+        focus: 'Quads + Hamstrings + Glutes + Calves',
+        cardioTarget: 'NONE. Protect legs from systemic fatigue.',
+        cardioDefaultType: 'None',
+        cardioDefaultDuration: 0,
+        exercises: [
+          { id: 'l_a_1', name: 'Hack Squat', targetSets: 3, repRange: '6–8', category: 'Quadriceps' },
+          { id: 'l_a_2', name: 'Romanian Deadlift (RDL)', targetSets: 3, repRange: '8–10', category: 'Hamstrings' },
+          { id: 'l_a_3', name: 'Leg Press', targetSets: 3, repRange: '10–12', category: 'Quads / Glutes' },
+          { id: 'l_a_4', name: 'Seated Leg Curl', targetSets: 3, repRange: '10–15', category: 'Hamstrings' },
+          { id: 'l_a_5', name: 'Leg Extension', targetSets: 2, repRange: '12–15', category: 'Rectus Femoris' },
+          { id: 'l_a_6', name: 'Standing Calf Raise', targetSets: 3, repRange: '10–15', category: 'Gastrocnemius' },
+          { id: 'l_a_7', name: 'Hanging Knee Raise', targetSets: 3, repRange: '10–15', category: 'Rectus Abdominis' }
+        ]
+      },
+      3: {
+        routineKey: 'swim_recovery',
+        routineName: 'Active Recovery Swim',
+        type: 'cardio_only',
+        focus: 'Zone 2 Base + Shoulder Girdle Flush',
+        cardioTarget: '30–40 min Swim (Scaled 12x50yd or 6x100yd, rest as needed)',
+        cardioDefaultType: 'Active Swim',
+        cardioDefaultDuration: 35,
+        exercises: []
+      },
+      4: {
+        routineKey: 'upper_b',
+        routineName: 'Upper B',
+        type: 'lifting',
+        focus: 'Incline Angle + Rear Delts + Arms',
+        cardioTarget: 'NONE. 48h leg recovery prior to Lower B.',
+        cardioDefaultType: 'None',
+        cardioDefaultDuration: 0,
+        exercises: [
+          { id: 'u_b_1', name: 'Incline Machine Press', targetSets: 3, repRange: '6–10', category: 'Clavicular Pec' },
+          { id: 'u_b_2', name: 'Seated Cable Row', targetSets: 3, repRange: '8–12', category: 'Mid-Back' },
+          { id: 'u_b_3', name: 'Machine Chest Press', targetSets: 3, repRange: '8–12', category: 'Pectoralis' },
+          { id: 'u_b_4', name: 'Neutral-Grip Lat Pulldown', targetSets: 3, repRange: '8–12', category: 'Latissimus' },
+          { id: 'u_b_5', name: 'Reverse Pec Deck / Cable Face Pulls', targetSets: 3, repRange: '12–15', category: 'Posterior Delts' },
+          { id: 'u_b_6', name: 'Cable Lateral Raise', targetSets: 3, repRange: '12–20', category: 'Lateral Delts' },
+          { id: 'u_b_7', name: 'Hammer Curl', targetSets: 2, repRange: '10–15', category: 'Brachialis' },
+          { id: 'u_b_8', name: 'Overhead Cable Triceps Extension', targetSets: 2, repRange: '10–15', category: 'Triceps Long Head' }
+        ]
+      },
+      5: {
+        routineKey: 'lower_b',
+        routineName: 'Lower B',
+        type: 'lifting',
+        focus: 'Unilateral Quads + Hip Thrusts + Soleus',
+        cardioTarget: 'NONE. Conserve lower extremity for Saturday intervals.',
+        cardioDefaultType: 'None',
+        cardioDefaultDuration: 0,
+        exercises: [
+          { id: 'l_b_1', name: 'Leg Press or Hack Squat', targetSets: 3, repRange: '8–12', category: 'Quadriceps' },
+          { id: 'l_b_2', name: 'Bulgarian Split Squat', targetSets: 2, repRange: '8–12 ea', category: 'Glutes / Quads' },
+          { id: 'l_b_3', name: 'Hip Thrust', targetSets: 3, repRange: '8–12', category: 'Gluteus Max' },
+          { id: 'l_b_4', name: 'Seated Leg Curl', targetSets: 3, repRange: '10–15', category: 'Hamstrings' },
+          { id: 'l_b_5', name: 'Leg Extension', targetSets: 2, repRange: '12–15', category: 'Rectus Femoris' },
+          { id: 'l_b_6', name: 'Seated Calf Raise', targetSets: 3, repRange: '12–20', category: 'Soleus' },
+          { id: 'l_b_7', name: 'Machine Ab Crunch', targetSets: 3, repRange: '10–15', category: 'Abdominal Wall' }
+        ]
+      },
+      6: {
+        routineKey: 'endurance_saturday',
+        routineName: 'Endurance & Quality Intervals',
+        type: 'cardio_only',
+        focus: 'Endurance Swim + 4x3 min Hard Intervals',
+        cardioTarget: 'Swim 30–45m Zone 2 + Run Intervals (4x3m hard, 2m easy jog)',
+        cardioDefaultType: 'Interval Run',
+        cardioDefaultDuration: 40,
+        exercises: []
+      },
+      0: {
+        routineKey: 'sunday_rest',
+        routineName: 'Complete Rest & Bulk Prep',
+        type: 'rest',
+        focus: 'Systemic Regeneration & Sunday Bulk Meal Prep',
+        cardioTarget: 'NONE. Complete rest.',
+        cardioDefaultType: 'None',
+        cardioDefaultDuration: 0,
+        exercises: []
+      }
+    };
+
+    const BASE_MEALS_CONFIG = [
+      {
+        id: 'meal_1',
+        name: 'Meal 1: Pre-Workout Ignition',
+        weekdayTime: '06:00',
+        weekendTime: '08:00',
+        targetP: 36, targetC: 50, targetF: 2, targetCal: 362,
+        desc: 'Rapid gastric clearance. Fast glycogen delivery.',
+        items: [
+          '240ml Fat-Free High-Protein Skim Milk (Fairlife)',
+          '20g (~2/3 scoop) Whey Protein Isolate',
+          '35g Quick Oats or Cream of Rice (weighed dry)',
+          '80g Banana (~2/3 medium banana)'
+        ]
+      },
+      {
+        id: 'meal_2',
+        name: 'Meal 2: Post-Workout Recovery',
+        weekdayTime: '09:30',
+        weekendTime: '11:30',
+        targetP: 28, targetC: 100, targetF: 5, targetCal: 557,
+        desc: 'Halt post-exercise proteolysis; replenish glycogen.',
+        items: [
+          '200g Liquid Egg Whites',
+          '1 Whole Egg (~50g)',
+          '350g White or Jasmine Rice (weighed cooked)'
+        ]
+      },
+      {
+        id: 'meal_3',
+        name: 'Meal 3: Midday Refuel',
+        weekdayTime: '13:30',
+        weekendTime: '15:30',
+        targetP: 31, targetC: 90, targetF: 21, targetCal: 673,
+        desc: 'Sustained plasma amino acid balance.',
+        items: [
+          '110g Cooked Chicken Breast (diced)',
+          '350g Brown Rice (weighed cooked)',
+          '120g Fresh Avocado (~1/2 large)'
+        ]
+      },
+      {
+        id: 'meal_4',
+        name: 'Meal 4: Pre-Class Sustenance',
+        weekdayTime: '17:00',
+        weekendTime: '19:00',
+        targetP: 30, targetC: 100, targetF: 23, targetCal: 727,
+        desc: 'Stable glycaemia for 6–9 PM university lectures.',
+        items: [
+          '110g Cooked 93/7 Lean Ground Beef or Turkey',
+          '350g White or Jasmine Rice (weighed cooked)',
+          '100g Mixed Greens or Baby Spinach',
+          '14g (1 tbsp) Extra Virgin Olive Oil dressing'
+        ]
+      },
+      {
+        id: 'meal_5',
+        name: 'Meal 5: Overnight Repair',
+        weekdayTime: '21:30',
+        weekendTime: '23:30',
+        targetP: 33, targetC: 80, targetF: 22, targetCal: 650,
+        desc: 'Slow-release micellar casein for nocturnal synthesis.',
+        items: [
+          '225g 2% Low-Fat Cottage Cheese (~1 cup)',
+          '32g (2 tbsp) Natural Peanut Butter',
+          '4 Plain Rice Cakes',
+          '150g Frozen Mixed Berries'
+        ]
+      }
+    ];
+
+    /* --------------------------------------------------------------
+       2. STATE MANAGEMENT & STORAGE
+    -------------------------------------------------------------- */
+    const STORAGE_KEY_LOGS = 'form_clinical_logs_v1';
+    const STORAGE_KEY_PREFS = 'form_clinical_prefs_v1';
+
+    let appState = {
+      selectedDateStr: '',
+      currentTab: 'workout',
+      defaultRestSeconds: 90,
+      soundEnabled: true,
+      dailyLogs: {},
+      timerInterval: null,
+      timerTotalSeconds: 90,
+      timerRemaining: 0
+    };
+
+    window.onload = function() {
+      initAppDates();
+      loadStorageData();
+      renderWeekDayStrip();
+      loadDateView(appState.selectedDateStr);
+    };
+
+    function initAppDates() {
+      const today = new Date();
+      appState.selectedDateStr = formatDateKey(today);
+      document.getElementById('nativeDatePickerInput').value = appState.selectedDateStr;
+    }
+
+    function formatDateKey(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseDateKey(str) {
+      const parts = str.split('-');
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+
+    function loadStorageData() {
+      try {
+        const storedLogs = localStorage.getItem(STORAGE_KEY_LOGS);
+        if (storedLogs) {
+          appState.dailyLogs = JSON.parse(storedLogs);
+        } else {
+          seedStarterBaseline();
+        }
+
+        const storedPrefs = localStorage.getItem(STORAGE_KEY_PREFS);
+        if (storedPrefs) {
+          const p = JSON.parse(storedPrefs);
+          appState.defaultRestSeconds = p.defaultRestSeconds || 90;
+          appState.soundEnabled = p.soundEnabled !== undefined ? p.soundEnabled : true;
+          document.getElementById('configuredRestDisplay').textContent = `${appState.defaultRestSeconds}s`;
+          document.getElementById('timerAudioCheckbox').checked = appState.soundEnabled;
+        }
+      } catch (e) {
+        console.error('Storage parse error', e);
+      }
+    }
+
+    function saveAllLogsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEY_LOGS, JSON.stringify(appState.dailyLogs));
+        updateAllMetrics();
+      } catch (e) {
+        console.error('Storage write error', e);
+      }
+    }
+
+    function seedStarterBaseline() {
+      const today = new Date();
+      const priorMon = new Date(today);
+      priorMon.setDate(today.getDate() - 7);
+      const priorMonKey = formatDateKey(priorMon);
+
+      appState.dailyLogs[priorMonKey] = {
+        workout: {
+          routineKey: 'upper_a',
+          routineName: 'Upper A',
+          completed: true,
+          exercises: [
+            { id: 'u_a_1', name: 'Machine Chest Press', sets: [{ setNum: 1, weight: 150, reps: 8, completed: true }, { setNum: 2, weight: 150, reps: 7, completed: true }, { setNum: 3, weight: 150, reps: 7, completed: true }] },
+            { id: 'u_a_2', name: 'Lat Pulldown / Assisted Pull-up', sets: [{ setNum: 1, weight: 130, reps: 10, completed: true }, { setNum: 2, weight: 130, reps: 9, completed: true }, { setNum: 3, weight: 130, reps: 8, completed: true }] },
+            { id: 'u_a_3', name: 'Incline Dumbbell or Machine Press', sets: [{ setNum: 1, weight: 55, reps: 12, completed: true }, { setNum: 2, weight: 55, reps: 10, completed: true }, { setNum: 3, weight: 55, reps: 9, completed: true }] },
+            { id: 'u_a_4', name: 'Chest-Supported Row', sets: [{ setNum: 1, weight: 95, reps: 12, completed: true }, { setNum: 2, weight: 95, reps: 11, completed: true }, { setNum: 3, weight: 95, reps: 10, completed: true }] },
+            { id: 'u_a_5', name: 'Cable Lateral Raise', sets: [{ setNum: 1, weight: 15, reps: 15, completed: true }, { setNum: 2, weight: 15, reps: 15, completed: true }, { setNum: 3, weight: 15, reps: 14, completed: true }] },
+            { id: 'u_a_6', name: 'Triceps Pushdown', sets: [{ setNum: 1, weight: 60, reps: 15, completed: true }, { setNum: 2, weight: 60, reps: 13, completed: true }] },
+            { id: 'u_a_7', name: 'Dumbbell Curl', sets: [{ setNum: 1, weight: 30, reps: 12, completed: true }, { setNum: 2, weight: 30, reps: 11, completed: true }] }
+          ],
+          totalVolume: 13850
+        },
+        nutrition: {
+          isWeekendShift: false,
+          meals: { meal_1: true, meal_2: true, meal_3: true, meal_4: true, meal_5: true }
+        },
+        cardio: {
+          type: 'Zone 2 Run',
+          duration: 22,
+          distance: '2.4 mi',
+          hrZone: 'Zone 2 (Aerobic 114-135 bpm)',
+          notes: 'Nasal breathing verified'
+        },
+        sauna: true
+      };
+
+      saveAllLogsToStorage();
+    }
+
+    /* --------------------------------------------------------------
+       3. APOTHECARY CALENDAR NAVIGATION
+    -------------------------------------------------------------- */
+    function renderWeekDayStrip() {
+      const strip = document.getElementById('weekDaysStrip');
+      strip.innerHTML = '';
+      const current = parseDateKey(appState.selectedDateStr);
+
+      const dayOfWeek = current.getDay();
+      const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      const monday = new Date(current);
+      monday.setDate(current.getDate() + diffToMon);
+
+      const daysOfWeekLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        const key = formatDateKey(d);
+        const isSelected = (key === appState.selectedDateStr);
+        const dayNumber = d.getDate();
+        const label = daysOfWeekLabels[i];
+
+        const hasData = !!appState.dailyLogs[key];
+        const hasWorkout = hasData && appState.dailyLogs[key].workout?.completed;
+
+        const btn = document.createElement('button');
+        btn.onclick = () => selectDateKey(key);
+        btn.className = `tap-press flex flex-col items-center py-2 px-1 rounded transition-colors border ${
+          isSelected 
+            ? 'bg-ink text-paper border-ink font-bold' 
+            : 'bg-paper hover:bg-cream text-secondary border-line'
+        }`;
+
+        btn.innerHTML = `
+          <span class="text-[9px] font-mono uppercase ${isSelected ? 'text-white/60' : 'text-muted'}">${label}</span>
+          <span class="text-xs font-mono font-bold mt-0.5">${dayNumber}</span>
+          <span class="w-1 h-1 rounded-full mt-1 ${hasWorkout ? (isSelected ? 'bg-clinical-softSage' : 'bg-clinical-forest') : (hasData ? 'bg-secondary' : 'bg-transparent')}"></span>
+        `;
+
+        strip.appendChild(btn);
+      }
+    }
+
+    function selectDateKey(dateKey) {
+      appState.selectedDateStr = dateKey;
+      document.getElementById('nativeDatePickerInput').value = dateKey;
+      renderWeekDayStrip();
+      loadDateView(dateKey);
+    }
+
+    function navigateDateDays(delta) {
+      const cur = parseDateKey(appState.selectedDateStr);
+      cur.setDate(cur.getDate() + delta);
+      selectDateKey(formatDateKey(cur));
+    }
+
+    function jumpToToday() {
+      initAppDates();
+      renderWeekDayStrip();
+      loadDateView(appState.selectedDateStr);
+    }
+
+    function onNativeDatePicked(val) {
+      if (val) selectDateKey(val);
+    }
+
+    function getDayProtocol(dateStr) {
+      const d = parseDateKey(dateStr);
+      return PROTOCOL_WEEK[d.getDay()];
+    }
+
+    function loadDateView(dateKey) {
+      const d = parseDateKey(dateKey);
+      const dayIndex = d.getDay();
+      const protocol = PROTOCOL_WEEK[dayIndex];
+
+      const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+      document.getElementById('currentDateSelectedLabel').textContent = d.toLocaleDateString('en-US', options);
+
+      if (!appState.dailyLogs[dateKey]) {
+        appState.dailyLogs[dateKey] = {
+          workout: {
+            routineKey: protocol.routineKey,
+            routineName: protocol.routineName,
+            completed: false,
+            exercises: []
+          },
+          nutrition: {
+            isWeekendShift: (dayIndex === 0 || dayIndex === 6),
+            meals: {}
+          },
+          cardio: {
+            type: protocol.cardioDefaultType,
+            duration: protocol.cardioDefaultDuration,
+            distance: '',
+            hrZone: 'Zone 2 (Aerobic 114-135 bpm)',
+            notes: ''
+          },
+          sauna: false
+        };
+      }
+
+      renderWorkoutTab(protocol, dateKey);
+      renderNutritionTab(dateKey);
+      renderCardioTab(protocol, dateKey);
+      updateAllMetrics();
+    }
+
+    /* --------------------------------------------------------------
+       4. PROGRESSIVE OVERLOAD ENGINE
+    -------------------------------------------------------------- */
+    function getPreviousWorkoutForRoutine(routineKey, beforeDateStr) {
+      const beforeTime = parseDateKey(beforeDateStr).getTime();
+      let bestMatch = null;
+      let latestTime = -1;
+
+      Object.keys(appState.dailyLogs).forEach(k => {
+        const t = parseDateKey(k).getTime();
+        if (t < beforeTime) {
+          const log = appState.dailyLogs[k];
+          if (log.workout && log.workout.routineKey === routineKey && log.workout.completed) {
+            if (t > latestTime) {
+              latestTime = t;
+              bestMatch = { date: k, workout: log.workout };
+            }
+          }
+        }
+      });
+
+      return bestMatch;
+    }
+
+    function renderWorkoutTab(protocol, dateKey) {
+      const nonLiftingBanner = document.getElementById('nonLiftingBanner');
+      const container = document.getElementById('exerciseCardsContainer');
+      const saveBtnWrapper = document.getElementById('saveWorkoutBtnWrapper');
+      const dayBadge = document.getElementById('dayBadgeLabel');
+      const title = document.getElementById('dayWorkoutTitle');
+      const prevRefText = document.getElementById('prevSessionRefText');
+      const ghostCopyBtn = document.getElementById('ghostCopyBtn');
+
+      dayBadge.textContent = protocol.routineName;
+      title.textContent = protocol.focus;
+
+      if (protocol.type !== 'lifting') {
+        container.innerHTML = '';
+        nonLiftingBanner.classList.remove('hidden');
+        nonLiftingBanner.classList.add('flex');
+        saveBtnWrapper.classList.add('hidden');
+        ghostCopyBtn.classList.add('hidden');
+
+        if (protocol.type === 'rest') {
+          document.getElementById('nonLiftingIcon').textContent = 'REST';
+          document.getElementById('nonLiftingTitle').textContent = 'Complete Recovery & Bulk Prep';
+          document.getElementById('nonLiftingDesc').textContent = 'Sunday rest protocol. Total central nervous system regeneration and weekly batch meal cooking.';
+        } else {
+          document.getElementById('nonLiftingIcon').textContent = 'AERO';
+          document.getElementById('nonLiftingTitle').textContent = protocol.routineName;
+          document.getElementById('nonLiftingDesc').textContent = protocol.cardioTarget;
+        }
+        prevRefText.textContent = 'Non-axial loading protocol active.';
+        return;
+      }
+
+      nonLiftingBanner.classList.add('hidden');
+      nonLiftingBanner.classList.remove('flex');
+      saveBtnWrapper.classList.remove('hidden');
+      ghostCopyBtn.classList.remove('hidden');
+
+      const previous = getPreviousWorkoutForRoutine(protocol.routineKey, dateKey);
+      if (previous) {
+        prevRefText.innerHTML = `Baseline: <span class="font-bold text-ink">${previous.date}</span> (${(previous.workout.totalVolume || 0).toLocaleString()} lbs volume load)`;
+      } else {
+        prevRefText.textContent = 'No previous baseline found. Establishing week 1 loading metrics.';
+      }
+
+      const dateWorkout = appState.dailyLogs[dateKey].workout;
+      if (!dateWorkout.exercises || dateWorkout.exercises.length === 0) {
+        dateWorkout.exercises = protocol.exercises.map(ex => {
+          const setsArr = [];
+          for (let s = 1; s <= ex.targetSets; s++) {
+            setsArr.push({ setNum: s, weight: '', reps: '', completed: false });
+          }
+          return { id: ex.id, name: ex.name, sets: setsArr };
+        });
+      }
+
+      container.innerHTML = '';
+
+      protocol.exercises.forEach((exDef, exIdx) => {
+        const liveEx = dateWorkout.exercises.find(e => e.id === exDef.id) || dateWorkout.exercises[exIdx];
+        const prevEx = previous?.workout?.exercises?.find(e => e.name.toLowerCase() === exDef.name.toLowerCase());
+
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded border border-line bg-paper flex flex-col gap-2.5';
+
+        let setsRowsHtml = '';
+        liveEx.sets.forEach((set, sIdx) => {
+          const prevSet = prevEx?.sets ? prevEx.sets[sIdx] : null;
+          const ghostW = prevSet && prevSet.weight !== undefined ? prevSet.weight : '';
+          const ghostR = prevSet && prevSet.reps !== undefined ? prevSet.reps : '';
+          const isDone = set.completed;
+
+          setsRowsHtml += `
+            <div class="grid grid-cols-12 items-center gap-2 py-1.5 border-b border-lineSubtle last:border-0 ${isDone ? 'bg-clinical-softSage/50 rounded' : ''}">
+              <div class="col-span-1 text-center font-mono text-[11px] ${isDone ? 'font-bold text-clinical-forest' : 'text-muted'}">
+                ${sIdx + 1}
+              </div>
+              <div class="col-span-3 text-center">
+                <span class="text-[11px] font-mono text-muted truncate block">
+                  ${ghostW ? `${ghostW} × ${ghostR}` : '—'}
+                </span>
+              </div>
+              <div class="col-span-3">
+                <input 
+                  type="number" step="0.5" inputmode="decimal"
+                  placeholder="${ghostW || 'lbs'}" 
+                  value="${set.weight}" 
+                  oninput="updateSetField('${dateKey}', '${exDef.id}', ${sIdx}, 'weight', this.value)"
+                  class="w-full text-center py-1 px-1 text-xs font-mono font-bold bg-cream border ${isDone ? 'border-clinical-forest/40 text-clinical-forest' : 'border-line text-ink focus:border-ink'} rounded focus:outline-none placeholder-muted/60">
+              </div>
+              <div class="col-span-3">
+                <input 
+                  type="number" inputmode="numeric"
+                  placeholder="${ghostR || 'reps'}" 
+                  value="${set.reps}" 
+                  oninput="updateSetField('${dateKey}', '${exDef.id}', ${sIdx}, 'reps', this.value)"
+                  class="w-full text-center py-1 px-1 text-xs font-mono font-bold bg-cream border ${isDone ? 'border-clinical-forest/40 text-clinical-forest' : 'border-line text-ink focus:border-ink'} rounded focus:outline-none placeholder-muted/60">
+              </div>
+              <div class="col-span-2 flex justify-center">
+                <button 
+                  onclick="toggleSetDone('${dateKey}', '${exDef.id}', ${sIdx}, '${escapeStr(exDef.name)}')"
+                  class="tap-press w-7 h-7 rounded border flex items-center justify-center transition-colors ${isDone ? 'bg-ink border-ink text-paper' : 'bg-cream border-line text-secondary hover:border-secondary'}">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+                </button>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between border-b border-lineSubtle pb-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-xs uppercase tracking-tight text-ink">${exDef.name}</h4>
+                <span class="text-[9px] font-mono text-muted uppercase">(${exDef.category})</span>
+              </div>
+              <p class="text-[11px] text-secondary font-mono mt-0.5">Target: <strong class="text-ink">${exDef.targetSets} sets × ${exDef.repRange} reps</strong></p>
+            </div>
+            
+            <!-- Minimal Incrementors -->
+            <div class="flex items-center gap-1 font-mono">
+              <button onclick="applyRapidOverload('${dateKey}', '${exDef.id}', 2.5, 0)" class="tap-press px-1.5 py-0.5 rounded border border-line bg-cream hover:bg-chalk text-[10px] text-secondary">
+                +2.5
+              </button>
+              <button onclick="applyRapidOverload('${dateKey}', '${exDef.id}', 5, 0)" class="tap-press px-1.5 py-0.5 rounded border border-line bg-cream hover:bg-chalk text-[10px] text-secondary">
+                +5
+              </button>
+              <button onclick="applyRapidOverload('${dateKey}', '${exDef.id}', 0, 1)" class="tap-press px-1.5 py-0.5 rounded border border-line bg-cream hover:bg-chalk text-[10px] text-secondary">
+                +1r
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-12 gap-2 text-[9px] font-mono uppercase tracking-wider text-muted px-1">
+            <div class="col-span-1 text-center">Set</div>
+            <div class="col-span-3 text-center">Ghost</div>
+            <div class="col-span-3 text-center">Weight</div>
+            <div class="col-span-3 text-center">Reps</div>
+            <div class="col-span-2 text-center">Done</div>
+          </div>
+
+          <div class="flex flex-col">
+            ${setsRowsHtml}
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] font-mono text-secondary pt-1 border-t border-lineSubtle">
+            <button onclick="addSetRow('${dateKey}', '${exDef.id}')" class="underline hover:text-ink">+ Add Set</button>
+            ${liveEx.sets.length > 1 ? `<button onclick="removeSetRow('${dateKey}', '${exDef.id}')" class="text-muted hover:text-clinical-red">Remove Set</button>` : ''}
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+    }
+
+    function updateSetField(dateKey, exId, setIdx, field, val) {
+      const workout = appState.dailyLogs[dateKey]?.workout;
+      const ex = workout?.exercises?.find(e => e.id === exId);
+      if (ex && ex.sets[setIdx]) {
+        ex.sets[setIdx][field] = val;
+      }
+    }
+
+    function toggleSetDone(dateKey, exId, setIdx, exName) {
+      const workout = appState.dailyLogs[dateKey].workout;
+      const ex = workout.exercises.find(e => e.id === exId);
+      const set = ex.sets[setIdx];
+
+      const protocol = getDayProtocol(dateKey);
+      const prev = getPreviousWorkoutForRoutine(protocol.routineKey, dateKey);
+      const prevEx = prev?.workout?.exercises?.find(e => e.name.toLowerCase() === exName.toLowerCase());
+      const prevSet = prevEx?.sets ? prevEx.sets[setIdx] : null;
+
+      if (!set.weight && prevSet && prevSet.weight !== undefined) set.weight = prevSet.weight;
+      if (!set.reps && prevSet && prevSet.reps !== undefined) set.reps = prevSet.reps;
+
+      set.completed = !set.completed;
+      saveAllLogsToStorage();
+      renderWorkoutTab(protocol, dateKey);
+
+      if (set.completed) {
+        triggerRestTimer(exName, setIdx + 1);
+      }
+    }
+
+    function applyRapidOverload(dateKey, exId, addW, addR) {
+      const protocol = getDayProtocol(dateKey);
+      const prev = getPreviousWorkoutForRoutine(protocol.routineKey, dateKey);
+      const workout = appState.dailyLogs[dateKey].workout;
+      const ex = workout.exercises.find(e => e.id === exId);
+      const prevEx = prev?.workout?.exercises?.find(e => e.name.toLowerCase() === ex.name.toLowerCase());
+
+      ex.sets.forEach((s, idx) => {
+        const pSet = prevEx?.sets ? prevEx.sets[idx] : null;
+        let baseW = parseFloat(s.weight);
+        if (isNaN(baseW)) baseW = pSet && pSet.weight !== undefined ? parseFloat(pSet.weight) : 0;
+        s.weight = Math.max(0, baseW + addW);
+
+        let baseR = parseInt(s.reps);
+        if (isNaN(baseR)) baseR = pSet && pSet.reps !== undefined ? parseInt(pSet.reps) : 8;
+        s.reps = Math.max(1, baseR + addR);
+      });
+
+      saveAllLogsToStorage();
+      renderWorkoutTab(protocol, dateKey);
+      showToast(`${ex.name}: +${addW > 0 ? addW + ' lbs' : addR + ' rep'} calibrated`);
+    }
+
+    function autoFillCurrentWorkoutFromPrevious() {
+      const protocol = getDayProtocol(appState.selectedDateStr);
+      const prev = getPreviousWorkoutForRoutine(protocol.routineKey, appState.selectedDateStr);
+      if (!prev || !prev.workout.exercises) {
+        showToast('No comparative baseline found.');
+        return;
+      }
+
+      const workout = appState.dailyLogs[appState.selectedDateStr].workout;
+      workout.exercises.forEach(liveEx => {
+        const pEx = prev.workout.exercises.find(e => e.name.toLowerCase() === liveEx.name.toLowerCase());
+        if (pEx && pEx.sets) {
+          pEx.sets.forEach((pSet, idx) => {
+            if (liveEx.sets[idx]) {
+              liveEx.sets[idx].weight = pSet.weight;
+              liveEx.sets[idx].reps = pSet.reps;
+            }
+          });
+        }
+      });
+
+      saveAllLogsToStorage();
+      renderWorkoutTab(protocol, appState.selectedDateStr);
+      showToast('Ghost values mapped to current set inputs');
+    }
+
+    function addSetRow(dateKey, exId) {
+      const workout = appState.dailyLogs[dateKey].workout;
+      const ex = workout.exercises.find(e => e.id === exId);
+      ex.sets.push({ setNum: ex.sets.length + 1, weight: '', reps: '', completed: false });
+      saveAllLogsToStorage();
+      renderWorkoutTab(getDayProtocol(dateKey), dateKey);
+    }
+
+    function removeSetRow(dateKey, exId) {
+      const workout = appState.dailyLogs[dateKey].workout;
+      const ex = workout.exercises.find(e => e.id === exId);
+      if (ex.sets.length > 1) {
+        ex.sets.pop();
+        saveAllLogsToStorage();
+        renderWorkoutTab(getDayProtocol(dateKey), dateKey);
+      }
+    }
+
+    function saveCurrentDateWorkout() {
+      const dateKey = appState.selectedDateStr;
+      const workout = appState.dailyLogs[dateKey].workout;
+      let totalVol = 0;
+      let completedCount = 0;
+
+      workout.exercises.forEach(ex => {
+        ex.sets.forEach(s => {
+          const w = parseFloat(s.weight) || 0;
+          const r = parseInt(s.reps) || 0;
+          if (s.completed || (w > 0 && r > 0)) {
+            totalVol += (w * r);
+            completedCount++;
+          }
+        });
+      });
+
+      if (completedCount === 0) {
+        showToast('Record at least 1 set before logging session.');
+        return;
+      }
+
+      workout.completed = true;
+      workout.totalVolume = totalVol;
+      saveAllLogsToStorage();
+      renderWeekDayStrip();
+      showToast(`Logged ${workout.routineName} (${totalVol.toLocaleString()} lbs volume)`);
+    }
+
+    function escapeStr(str) {
+      return str.replace(/'/g, "\\'");
+    }
+
+    /* --------------------------------------------------------------
+       5. NUTRITION SPECIFICATION & COMPLIANCE
+    -------------------------------------------------------------- */
+    function renderNutritionTab(dateKey) {
+      const log = appState.dailyLogs[dateKey];
+      const nutState = log.nutrition || { isWeekendShift: false, meals: {} };
+      const timingPill = document.getElementById('nutritionTimingPill');
+      const weekendBtn = document.getElementById('weekendToggleBtn');
+
+      if (nutState.isWeekendShift) {
+        timingPill.textContent = 'Weekend (08:00 Start)';
+        weekendBtn.textContent = 'Switch to 06:00 Start';
+      } else {
+        timingPill.textContent = 'Weekday (06:00 Start)';
+        weekendBtn.textContent = 'Shift +2h (Sat/Sun)';
+      }
+
+      let totalCal = 0, totalP = 0, totalC = 0, totalF = 0;
+
+      const container = document.getElementById('mealsListContainer');
+      container.innerHTML = '';
+
+      BASE_MEALS_CONFIG.forEach(meal => {
+        const isChecked = !!nutState.meals[meal.id];
+        if (isChecked) {
+          totalCal += meal.targetCal;
+          totalP += meal.targetP;
+          totalC += meal.targetC;
+          totalF += meal.targetF;
+        }
+
+        const mealCard = document.createElement('div');
+        mealCard.className = `p-3.5 rounded border transition-colors ${isChecked ? 'bg-cream border-line' : 'bg-paper border-line'}`;
+
+        const scheduledTime = nutState.isWeekendShift ? meal.weekendTime : meal.weekdayTime;
+        const ingredientsList = meal.items.map(item => `
+          <li class="flex items-center gap-1.5 font-mono text-[11px] text-secondary">
+            <span class="text-muted">•</span> ${item}
+          </li>
+        `).join('');
+
+        mealCard.innerHTML = `
+          <div class="flex items-start justify-between border-b border-lineSubtle pb-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border border-line bg-cream text-ink">${scheduledTime}</span>
+                <h4 class="text-xs font-bold uppercase tracking-tight text-ink">${meal.name}</h4>
+              </div>
+              <p class="text-[11px] text-muted font-sans mt-0.5">${meal.desc}</p>
+            </div>
+            <button onclick="toggleMealCheck('${dateKey}', '${meal.id}')" class="tap-press w-7 h-7 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-ink border-ink text-paper' : 'bg-cream border-line text-secondary hover:border-secondary'}">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M5 13l4 4L19 7"/></svg>
+            </button>
+          </div>
+
+          <ul class="space-y-1 my-2 bg-paper/60 p-2 rounded border border-lineSubtle">
+            ${ingredientsList}
+          </ul>
+
+          <div class="flex items-center justify-between text-[10px] font-mono text-secondary pt-1">
+            <span>Prescription: <strong class="text-clinical-forest">${meal.targetP}g P</strong> • <strong class="text-ink">${meal.targetC}g C</strong> • <strong>${meal.targetF}g F</strong></span>
+            <span class="font-bold text-ink">${meal.targetCal} kcal</span>
+          </div>
+        `;
+
+        container.appendChild(mealCard);
+      });
+
+      document.getElementById('calCurrentVal').textContent = totalCal;
+      document.getElementById('proteinCurrentVal').textContent = totalP;
+      document.getElementById('carbsCurrentVal').textContent = totalC;
+      document.getElementById('fatCurrentVal').textContent = totalF;
+
+      document.getElementById('calProgressBar').style.width = `${Math.min(100, (totalCal / 3000) * 100)}%`;
+      document.getElementById('proteinProgressBar').style.width = `${Math.min(100, (totalP / 150) * 100)}%`;
+      document.getElementById('carbsProgressBar').style.width = `${Math.min(100, (totalC / 430) * 100)}%`;
+      document.getElementById('fatProgressBar').style.width = `${Math.min(100, (totalF / 75) * 100)}%`;
+    }
+
+    function toggleMealCheck(dateKey, mealId) {
+      const nut = appState.dailyLogs[dateKey].nutrition;
+      nut.meals[mealId] = !nut.meals[mealId];
+      saveAllLogsToStorage();
+      renderNutritionTab(dateKey);
+    }
+
+    function checkAllDailyMeals() {
+      const nut = appState.dailyLogs[appState.selectedDateStr].nutrition;
+      BASE_MEALS_CONFIG.forEach(m => nut.meals[m.id] = true);
+      saveAllLogsToStorage();
+      renderNutritionTab(appState.selectedDateStr);
+      showToast('All 5 meals confirmed (3,000 kcal logged)');
+    }
+
+    function toggleNutritionWeekendSchedule() {
+      const nut = appState.dailyLogs[appState.selectedDateStr].nutrition;
+      nut.isWeekendShift = !nut.isWeekendShift;
+      saveAllLogsToStorage();
+      renderNutritionTab(appState.selectedDateStr);
+    }
+
+    /* --------------------------------------------------------------
+       6. RECOVERY & CARDIO LOGGING
+    -------------------------------------------------------------- */
+    function renderCardioTab(protocol, dateKey) {
+      const cardio = appState.dailyLogs[dateKey].cardio || {};
+      const saunaDone = !!appState.dailyLogs[dateKey].sauna;
+
+      document.getElementById('cardioRecTitle').textContent = protocol.routineName;
+      document.getElementById('cardioRecTarget').textContent = protocol.cardioTarget;
+
+      document.getElementById('cardioTypeSelect').value = cardio.type || protocol.cardioDefaultType;
+      document.getElementById('cardioDurationInput').value = cardio.duration !== undefined ? cardio.duration : protocol.cardioDefaultDuration;
+      document.getElementById('cardioDistanceInput').value = cardio.distance || '';
+      document.getElementById('cardioHrZoneSelect').value = cardio.hrZone || 'Zone 2 (Aerobic 114-135 bpm)';
+      document.getElementById('cardioNotesInput').value = cardio.notes || '';
+
+      const saunaBtn = document.getElementById('saunaCompletedToggleBtn');
+      if (saunaDone) {
+        saunaBtn.className = 'tap-press w-9 h-9 rounded bg-ink border border-ink text-paper flex items-center justify-center transition-colors';
+      } else {
+        saunaBtn.className = 'tap-press w-9 h-9 rounded bg-cream border border-line text-secondary flex items-center justify-center transition-colors hover:border-secondary';
+      }
+    }
+
+    function toggleDailySauna() {
+      const log = appState.dailyLogs[appState.selectedDateStr];
+      log.sauna = !log.sauna;
+      saveAllLogsToStorage();
+      renderCardioTab(getDayProtocol(appState.selectedDateStr), appState.selectedDateStr);
+      showToast(log.sauna ? '15-min Sauna logged' : 'Sauna unflagged');
+    }
+
+    function saveCardioAndSaunaData() {
+      const log = appState.dailyLogs[appState.selectedDateStr];
+      log.cardio = {
+        type: document.getElementById('cardioTypeSelect').value,
+        duration: parseInt(document.getElementById('cardioDurationInput').value) || 0,
+        distance: document.getElementById('cardioDistanceInput').value,
+        hrZone: document.getElementById('cardioHrZoneSelect').value,
+        notes: document.getElementById('cardioNotesInput').value
+      };
+      saveAllLogsToStorage();
+      showToast('Cardiovascular metrics stored');
+    }
+
+    /* --------------------------------------------------------------
+       7. TAB CONTROLLING & METRICS
+    -------------------------------------------------------------- */
+    function switchDomainTab(tab) {
+      appState.currentTab = tab;
+      const tabs = ['workout', 'nutrition', 'cardio', 'history'];
+      tabs.forEach(t => {
+        const cap = t.charAt(0).toUpperCase() + t.slice(1);
+        document.getElementById(`tabContent${cap}`).classList.add('hidden');
+        document.getElementById(`tabContent${cap}`).classList.remove('flex');
+        const btn = document.getElementById(`nav${cap}Btn`);
+        btn.className = 'py-1.5 text-xs font-medium tracking-tight rounded transition-all text-secondary hover:text-ink';
+      });
+
+      const activeCap = tab.charAt(0).toUpperCase() + tab.slice(1);
+      document.getElementById(`tabContent${activeCap}`).classList.remove('hidden');
+      document.getElementById(`tabContent${activeCap}`).classList.add('flex');
+      document.getElementById(`nav${activeCap}Btn`).className = 'py-1.5 text-xs font-semibold tracking-tight rounded transition-all text-paper bg-ink shadow-sm';
+
+      if (tab === 'history') renderHistoryTab();
+    }
+
+    function updateAllMetrics() {
+      let workoutsCount = 0;
+      let fullNutDays = 0;
+      let totalVol = 0;
+
+      Object.keys(appState.dailyLogs).forEach(k => {
+        const log = appState.dailyLogs[k];
+        if (log.workout?.completed) workoutsCount++;
+        if (log.workout?.totalVolume) totalVol += log.workout.totalVolume;
+        
+        if (log.nutrition?.meals) {
+          const mealsChecked = Object.values(log.nutrition.meals).filter(Boolean).length;
+          if (mealsChecked >= 5) fullNutDays++;
+        }
+      });
+
+      document.getElementById('metricTotalWorkouts').textContent = workoutsCount;
+      document.getElementById('metricNutritionAdherence').textContent = `${fullNutDays}d`;
+      document.getElementById('metricTotalVolume').textContent = `${(totalVol / 1000).toFixed(1)}k`;
+    }
+
+    function renderHistoryTab() {
+      const list = document.getElementById('historyLogsList');
+      list.innerHTML = '';
+      const dates = Object.keys(appState.dailyLogs).sort((a, b) => new Date(b) - new Date(a));
+
+      if (dates.length === 0) {
+        list.innerHTML = '<p class="text-xs text-secondary font-mono text-center py-6">Zero historical records found.</p>';
+        return;
+      }
+
+      dates.forEach(dateStr => {
+        const log = appState.dailyLogs[dateStr];
+        const w = log.workout;
+        const n = log.nutrition;
+        const c = log.cardio;
+
+        const card = document.createElement('div');
+        card.className = 'p-3 rounded border border-line bg-paper flex flex-col gap-1.5 font-mono';
+
+        const mealsCount = n?.meals ? Object.values(n.meals).filter(Boolean).length : 0;
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-lineSubtle pb-1.5">
+            <div>
+              <span class="text-xs font-bold text-ink">${dateStr}</span>
+              <p class="text-[11px] text-secondary font-sans font-medium">${w?.routineName || 'Recovery Protocol'}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-xs font-bold text-ink">${(w?.totalVolume || 0).toLocaleString()} lbs vol</span>
+              <p class="text-[10px] text-muted">${mealsCount}/5 Meals • ${log.sauna ? 'Sauna Rx' : 'No Sauna'}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between text-[11px] text-secondary pt-0.5">
+            <span>Cardio: ${c?.type || 'None'} ${c?.duration ? `(${c.duration}m)` : ''}</span>
+            <button onclick="selectDateKey('${dateStr}'); switchDomainTab('workout');" class="text-ink underline hover:text-black font-semibold">
+              Inspect →
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    /* --------------------------------------------------------------
+       8. CLINICAL TELEMETRY EXPORT FOR GEMINI
+    -------------------------------------------------------------- */
+    function openWeeklyReviewModal() {
+      const modal = document.getElementById('weeklyReviewModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      generateWeeklyReviewJSON();
+    }
+
+    function closeWeeklyReviewModal() {
+      const modal = document.getElementById('weeklyReviewModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function generateWeeklyReviewJSON() {
+      const mode = document.getElementById('exportPeriodSelect').value;
+      const allDates = Object.keys(appState.dailyLogs).sort();
+      let targetDates = [];
+
+      const current = parseDateKey(appState.selectedDateStr);
+
+      if (mode === 'current_week') {
+        const dayOfWeek = current.getDay();
+        const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(current);
+        monday.setDate(current.getDate() + diffToMon);
+
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+          targetDates.push(formatDateKey(d));
+        }
+      } else if (mode === 'last_7_days') {
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(current);
+          d.setDate(current.getDate() - i);
+          targetDates.push(formatDateKey(d));
+        }
+      } else {
+        targetDates = allDates;
+      }
+
+      const exportPayload = {
+        meta: {
+          clientGoal: 'Evidence-Based Hypertrophy & Polarized Aerobic Endurance',
+          targetCaloriesDaily: 3000,
+          targetProteinGrams: 150,
+          targetCarbsGrams: 430,
+          targetFatGrams: 75,
+          timestamp: new Date().toISOString(),
+          evaluationPeriod: mode
+        },
+        dailyLogs: []
+      };
+
+      let liftingDaysLogged = 0;
+
+      targetDates.forEach(dKey => {
+        const log = appState.dailyLogs[dKey];
+        if (!log) return;
+
+        const dayEntry = {
+          date: dKey,
+          protocol: getDayProtocol(dKey).routineName,
+          workout: null,
+          nutrition: {
+            mealsCompletedCount: log.nutrition?.meals ? Object.values(log.nutrition.meals).filter(Boolean).length : 0,
+            fullMacroCompliance: (log.nutrition?.meals && Object.values(log.nutrition.meals).filter(Boolean).length === 5),
+            scheduleOffset: log.nutrition?.isWeekendShift ? '+2h Weekend Shift' : 'Standard 06:00'
+          },
+          cardio: log.cardio || null,
+          saunaProtocolCompleted: !!log.sauna
+        };
+
+        if (log.workout && log.workout.completed) {
+          liftingDaysLogged++;
+          dayEntry.workout = {
+            routine: log.workout.routineName,
+            volumeLoadLbs: log.workout.totalVolume,
+            exercises: log.workout.exercises.map(e => ({
+              name: e.name,
+              sets: e.sets.filter(s => s.completed || (s.weight && s.reps)).map(s => ({
+                set: s.setNum,
+                loadLbs: parseFloat(s.weight) || 0,
+                reps: parseInt(s.reps) || 0
+              }))
+            }))
+          };
+        }
+
+        exportPayload.dailyLogs.push(dayEntry);
+      });
+
+      document.getElementById('exportStatsSummary').textContent = `${exportPayload.dailyLogs.length} days captured (${liftingDaysLogged} sessions)`;
+
+      const promptHeader = `Hey Gemini, here is my weekly hybrid training and nutrition log in JSON for clinical review:
+1. Progressive Overload: Analyze if load or volume progressed across major compound anchors.
+2. Muscle Group Volume: Assess hypertrophic adequacy across Quadriceps, Chest, Back, and Hamstrings.
+3. Macro Compliance: Verify adherence to the 3,000 kcal and 150g protein benchmark across the 5 meals.
+4. Interference Control: Confirm that my swimming, running, and sauna protocols supported recovery.
+
+Structured Payload:
+`;
+
+      document.getElementById('aiPromptOutputText').value = promptHeader + JSON.stringify(exportPayload, null, 2);
+    }
+
+    function copyWeeklyPromptToClipboard() {
+      const textarea = document.getElementById('aiPromptOutputText');
+      textarea.select();
+      document.execCommand('copy');
+      showToast('Payload copied to clipboard');
+    }
+
+    function downloadWeeklyJSONFile() {
+      const textarea = document.getElementById('aiPromptOutputText').value;
+      const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(textarea);
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `form_telemetry_${appState.selectedDateStr}.txt`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+      showToast('Downloaded .txt file');
+    }
+
+    /* --------------------------------------------------------------
+       9. WEB AUDIO API REST CHIME SYNTHESIS
+    -------------------------------------------------------------- */
+    function playChime(freqStart, freqEnd, duration) {
+      if (!appState.soundEnabled) return;
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+        if (freqEnd) {
+          osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
+        }
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function triggerRestTimer(exName, setNum) {
+      clearInterval(appState.timerInterval);
+      appState.timerTotalSeconds = appState.defaultRestSeconds;
+      appState.timerRemaining = appState.defaultRestSeconds;
+
+      const bar = document.getElementById('floatingTimerBar');
+      bar.classList.remove('translate-y-36', 'opacity-0', 'pointer-events-none');
+      bar.classList.add('translate-y-0', 'opacity-100');
+
+      document.getElementById('timerExerciseContext').textContent = `${exName} (Set ${setNum} Completed)`;
+      updateRestTimerBarUI();
+      playChime(587.33, 880, 0.15); // Pure subtle D5 to A5 tone
+
+      appState.timerInterval = setInterval(() => {
+        appState.timerRemaining--;
+        if (appState.timerRemaining <= 0) {
+          clearInterval(appState.timerInterval);
+          appState.timerRemaining = 0;
+          updateRestTimerBarUI();
+          playChime(880, 1174.66, 0.35); // A5 to D6 interval completion
+          showToast('Rest interval elapsed');
+          setTimeout(dismissRestTimer, 3000);
+        } else {
+          updateRestTimerBarUI();
+        }
+      }, 1000);
+    }
+
+    function updateRestTimerBarUI() {
+      const min = Math.floor(appState.timerRemaining / 60);
+      const sec = appState.timerRemaining % 60;
+      document.getElementById('timerTimeText').textContent = min > 0 ? `${min}:${sec < 10 ? '0' : ''}${sec}` : `${sec}s`;
+    }
+
+    function adjustRestTimer(sec) {
+      appState.timerRemaining += sec;
+      appState.timerTotalSeconds += sec;
+      updateRestTimerBarUI();
+    }
+
+    function dismissRestTimer() {
+      clearInterval(appState.timerInterval);
+      const bar = document.getElementById('floatingTimerBar');
+      bar.classList.add('translate-y-36', 'opacity-0', 'pointer-events-none');
+      bar.classList.remove('translate-y-0', 'opacity-100');
+    }
+
+    function toggleTimerSettingsModal() {
+      const m = document.getElementById('timerModal');
+      m.classList.toggle('hidden');
+      m.classList.toggle('flex');
+    }
+
+    function setDefaultRest(sec) {
+      appState.defaultRestSeconds = sec;
+      document.getElementById('configuredRestDisplay').textContent = `${sec}s`;
+      savePrefs();
+      toggleTimerSettingsModal();
+      showToast(`Default interval set: ${sec}s`);
+    }
+
+    function savePrefs() {
+      localStorage.setItem(STORAGE_KEY_PREFS, JSON.stringify({
+        defaultRestSeconds: appState.defaultRestSeconds,
+        soundEnabled: appState.soundEnabled
+      }));
+    }
+
+    /* --------------------------------------------------------------
+       10. CLINICAL TOAST DISPATCHER
+    -------------------------------------------------------------- */
+    let toastTimeout;
+    function showToast(msg) {
+      clearTimeout(toastTimeout);
+      const toast = document.getElementById('toastNotification');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.classList.remove('-translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('-translate-y-20', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 2500);
+    }
+
+    document.getElementById('timerAudioCheckbox').addEventListener('change', (e) => {
+      appState.soundEnabled = e.target.checked;
+      savePrefs();
+    });
+  </script>
+</body>
+</html>
